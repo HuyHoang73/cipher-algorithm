@@ -2,56 +2,70 @@ package TX2;
 
 public class Affine {
 
-	// Key values of a and b
-	static int a = 5;
-	static int b = 3;
+    // Key values of a and b
+    static int a = 5;
+    static int b = 3;
 
-	static String encryptMessage(char[] msg) {
-		/// Cipher Text initially empty
-		String cipher = "";
-		for (int i = 0; i < msg.length; i++) {
-			if (msg[i] != ' ') {
-				cipher = cipher + (char) ((((a * (msg[i] - 'A')) + b) % 26) + 'A');
-			} else // else simply append space character
-			{
-				cipher += msg[i];
-			}
-		}
-		return cipher;
-	}
+    static String encryptMessage(String msg) {
+        StringBuilder cipher = new StringBuilder();
 
-	static String decryptCipher(String cipher) {
-		String msg = "";
-		int a_inv = 0;
-		int flag = 0;
+        for (int i = 0; i < msg.length(); i++) {
+            char ch = msg.charAt(i);
+            if (Character.isLetter(ch)) {
+                int charIndex = Character.isUpperCase(ch) ? (ch - 'A') : (ch - 'a');
+                int encryptedIndex = (a * charIndex + b) % 26;
+                char encryptedChar = Character.isUpperCase(ch) ? (char) (encryptedIndex + 'A') : (char) (encryptedIndex + 'a');
+                cipher.append(encryptedChar);
+            } else {
+                cipher.append(ch); // keep non-alphabet characters unchanged
+            }
+        }
 
-		for (int i = 0; i < 26; i++) {
-			flag = (a * i) % 26;
+        return cipher.toString();
+    }
 
-			if (flag == 1) {
-				a_inv = i;
-			}
-		}
-		for (int i = 0; i < cipher.length(); i++) {
-			if (cipher.charAt(i) != ' ') {
-				msg = msg + (char) (((a_inv * ((cipher.charAt(i) + 'A' - b)) % 26)) + 'A');
-			} else // else simply append space character
-			{
-				msg += cipher.charAt(i);
-			}
-		}
+    static String decryptCipher(String cipher) {
+        StringBuilder msg = new StringBuilder();
 
-		return msg;
-	}
+        int a_inv = 0;
+        int flag = 0;
 
-	// Driver code
-	public static void main(String[] args) {
-		String msg = "ATTACK";
+        // Find modular inverse of 'a' under modulo 26
+        for (int i = 0; i < 26; i++) {
+            flag = (a * i) % 26;
 
-		String cipherText = encryptMessage(msg.toCharArray());
-		
-		System.out.println("Encrypted Message is : " + cipherText);
-		System.out.println("Decrypted Message is: " + decryptCipher(cipherText));
+            if (flag == 1) {
+                a_inv = i;
+            }
+        }
 
-	}
+        for (int i = 0; i < cipher.length(); i++) {
+            char ch = cipher.charAt(i);
+            if (Character.isLetter(ch)) {
+                int charIndex = Character.isUpperCase(ch) ? (ch - 'A') : (ch - 'a');
+                // Apply modular arithmetic to get original index
+                int decryptedIndex = (a_inv * (charIndex - b + 26)) % 26;
+                if (decryptedIndex < 0) {
+                    decryptedIndex += 26;
+                }
+                char decryptedChar = Character.isUpperCase(ch) ? (char) (decryptedIndex + 'A') : (char) (decryptedIndex + 'a');
+                msg.append(decryptedChar);
+            } else {
+                msg.append(ch); // keep non-alphabet characters unchanged
+            }
+        }
+
+        return msg.toString();
+    }
+
+    // Driver code
+    public static void main(String[] args) {
+        String msg = "Hello World!";
+
+        String cipherText = encryptMessage(msg);
+        System.out.println("Encrypted Message is: " + cipherText);
+
+        String decryptedMessage = decryptCipher(cipherText);
+        System.out.println("Decrypted Message is: " + decryptedMessage);
+    }
 }
